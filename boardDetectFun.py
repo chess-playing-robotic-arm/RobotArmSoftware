@@ -299,6 +299,7 @@ def crop(img, square):
     y = int(p1[1])
     h = int(p4[1])
 
+    # newImg = img[y:y+h, x:x+w] 
     newImg = img[y-5:h+5, x-5:w+5]
     # newImg = img[y:h, x:w]
     # newImg = img[x:w, y:h]
