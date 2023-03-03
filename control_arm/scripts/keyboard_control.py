@@ -4,6 +4,8 @@ import keyboard
 import json
 import time
 
+# TODO : format this file and restructure !! 
+
 def keyboard_input_thread(callback,saveToFile,makeMove):
   
   def keyboard_input():
@@ -123,7 +125,7 @@ def main():
       b_str = ','.join(map(str, b_movements))
       a_str = ','.join(map(str, a_movements))
       # Open the file in write mode
-      with open("movements_recorded.txt", "w") as file:
+      with open("./outputs/movements_recorded.txt", "w") as file:
         # Write the string to the file
         file.writelines('Right Motor : \n')
         file.writelines(str(r_movements[0]) + ',' + str(r_movements[-1]) + '\n')
