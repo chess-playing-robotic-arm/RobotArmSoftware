@@ -1,6 +1,6 @@
 import numpy as np
 import cv2 as cv
-from boardDetectFun import readPoints, drawOrderedPoints
+from boardDetectFun import detectRedCorners, drawExtractedSquare, drawPoints, readPoints, drawOrderedPoints
 from detectBoard import detectBoard
 import argparse
 
@@ -35,9 +35,7 @@ def useCamera():
         camera_id="/dev/video1"
         cap = cv.VideoCapture(camera_id, cv.CAP_V4L2)
         
-    _, img = cap.read()
-    cap.release()
-    return img
+    return cap
 
 def setup():
     setup = True
@@ -45,20 +43,30 @@ def setup():
 
     # * chose how to obtain the image 
     if(args.input == None):
-        img = useCamera()
+        cap = useCamera()
     else:
         img = useFileImage(args.input)
 
-    print('Press S to setup')
+    
+    if(args.mode == 's'):
+        print('Setup mode is Selected')
+        print('Press S to setup')
+    else:
+        print('Selected mode is Showing the points') 
+
     while setup:
+        _, img = cap.read()
         if(args.mode == 's'):
             gray = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
             edges = cv.Canny(gray, CANNY_LOWER_THRESHOLD, CANNY_LOWER_THRESHOLD, apertureSize=3)
+            coord = detectRedCorners(img)
+            cornerPoints = drawExtractedSquare(img, np.array(coord))
+            # p1,p2,p3,p4 = cornerPoints.points
+            drawPoints(img,cornerPoints.points)
             cv.imshow('img', img)
             cv.imshow('canny',edges)
 
         else:
-            print('Selected mode is Showing the points') 
             
             points = readPoints()
             drawOrderedPoints(img,points)
@@ -76,7 +84,7 @@ def setup():
                 setup = True
             else:
                 setup = False
-
+    cap.release()
     cv.destroyAllWindows()
 
 
