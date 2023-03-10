@@ -164,57 +164,13 @@ def detectRedCorners(img):
     points = cluster_points(coord)
     return points
 
-# TODO: return corrected corrners
+# TODO: return corrected corners
 def drawExtractedSquare(img, points):
-   
     x_dim = points.shape[0]
     points = points.reshape(x_dim, 2)
-    
     points = points.astype(int)
-    print(points)
-
-    x, y, w, h = cv.boundingRect(points)
-    p1 = (x, y+h)  # bottom-left
-    print(p1)
-    cv.circle(img, p1, 3, (255, 255, 0), 2)
-
-    currentYmin = y+h
-    currentXmax = x
-    currentXmin = x+w
-    p2 = 0  # top-right
-    p3 = 0  # bottom-right
-    p4 = 0  # top-left
-    for point in points:
-        point = tuple(point)
-        print(point)
-        if point[1] < currentYmin or point[0] > currentXmax:
-            currentYmin = point[1]
-            p2 = point
-        if point[0] > currentXmax:
-            currentXmax = point[0]
-            p3 = point
-
-        if point[1] <= y + 10:
-            if point[0] < currentXmin:
-                currentXmin = point[0]
-                p4 = point
-        # cv.circle(img, point, 1, (255, 255, 255), 2)
-
-    if not p2 == 0:
-        print(p2)
-        cv.circle(img, p2, 1, (255, 255, 0), 2)
-    if not p3 == 0:
-        print(p3)
-        cv.circle(img, p3, 1, (255, 255, 0), 2)
-    if not p4 == 0:
-        print(p4)
-        cv.circle(img, p4, 1, (255, 255, 0), 2)
-        # cv.circle(img, point, 1, (255, 0, 255), 2)
-    correctedPoints = CoordinateSystemTools(points[0], points[1], points[2], points[3])
-    
+    correctedPoints = CoordinateSystemTools(points[0], points[1], points[2], points[3]) 
     return correctedPoints
-
-# todo fix it
 
 
 def removeClosePoints(points, center, threshold):
@@ -299,7 +255,6 @@ def crop(img, square):
     y = int(p1[1])
     h = int(p4[1])
 
-    # newImg = img[y:y+h, x:x+w] 
     newImg = img[y-5:h+5, x-5:w+5]
     # newImg = img[y:h, x:w]
     # newImg = img[x:w, y:h]
