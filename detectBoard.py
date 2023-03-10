@@ -11,15 +11,20 @@ def detectBoard(img):
     edges = cv.Canny(gray, CANNY_LOWER_THRESHOLD, CANNY_UPPER_THRESHOLD, apertureSize=3)
     coord = detectRedCorners(img)
     cornerPoints = drawExtractedSquare(img, np.array(coord))
-    p1,p2,p3,p4 = cornerPoints
+    p1,p2,p3,p4 = cornerPoints.points
+    # print(cornerPoints.points)
     mask = np.zeros_like(img)
-    cv.fillPoly(mask,[p1,p2,p3,p4],(255,255,255))
-    masked_image = cv.bitwise_and(img, mask)
-    # cv.imshow('mask', masked_image)
+    roi_corners = np.array([[p1,p2,p3,p4]], dtype=np.int32)
+    channel_count = img.shape[2]
+    ignore_mask_color = (255,)*channel_count
+    cv.fillPoly(mask,roi_corners,ignore_mask_color)
+    masked_image = cv.bitwise_and(img, mask) # extract the board
+    cv.imshow('mask', masked_image)
     
     gray = cv.cvtColor(masked_image, cv.COLOR_BGR2GRAY)
     edges = cv.Canny(masked_image, CANNY_LOWER_LINE_THRESHOLD, CANNY_UPPER_LINE_THRESHOLD, apertureSize=3)
     lines = cv.HoughLines(edges, HOUGH_RHO, HOUGH_THETA, HOUGH_THRESHOLD)
+    drawLines(img,lines)
     h_lines, v_lines = h_v_lines(lines)
 
 
@@ -31,13 +36,13 @@ def detectBoard(img):
     # newPoints = removeClosePoints(points, center, threshold=5)
     # drawPoints(img,newPoints,color = (0,0,255))
     # print(len(newPoints))
-    print(f"Number of Detected points : ${len(points)}")
+    print(f"Number of Detected points : {len(points)}")
 
     if (len(points) == PERFECT_POINTS):
         print('It seems like a good fit!!')
         allRows = organizeSave(points)
         print('Saved to points.txt')
-        print(len(allRows))
+        # print(len(allRows))
         
     else:
         print('try to position the board differently')
@@ -46,3 +51,5 @@ def detectBoard(img):
         cv.waitKey()
         
 
+    cv.imshow('img', img)
+    cv.waitKey()
