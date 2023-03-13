@@ -5,7 +5,7 @@ sys.path.insert(0,"..")
 
 from message_broker.broker import RabbitMQ
 
-consumer = RabbitMQ('bestMove','bestMove')
+consumer = RabbitMQ('bestMove')
 
 
 def handler(msg):

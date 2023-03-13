@@ -11,9 +11,9 @@ import os
 EXCHANGE = 'main'
 
 class RabbitMQ():
-    def __init__(self,queue,routing_key):
+    def __init__(self,routing_key):
         self.exchange_type = ExchangeType.direct
-        self.routing_key = queue
+        self.routing_key = routing_key
         
         self.url = 'localhost' 
         # self.url = '10.154.7.194'

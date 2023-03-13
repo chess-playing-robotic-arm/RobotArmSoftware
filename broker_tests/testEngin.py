@@ -8,8 +8,8 @@ sys.path.insert(0,"..")
 
 from message_broker.broker import RabbitMQ
 
-producer = RabbitMQ('bestMove','bestMove')
-consumer = RabbitMQ('fen','fen')
+producer = RabbitMQ('bestMove')
+consumer = RabbitMQ('fen')
 
 stockfish = Stockfish(path="D:\stockfish\stockfish-windows-2022-x86-64-avx2.exe")
 

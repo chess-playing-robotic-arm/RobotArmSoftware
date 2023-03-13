@@ -8,7 +8,7 @@ import time
 import json
 
 
-producer = RabbitMQ('fen','fen')
+producer = RabbitMQ('fen')
 fen_lst = ['3nr3/7k/1BP5/8/1Ppp2b1/1P1pqr2/K5Pp/8 w - - 0 1',
            '1N5b/8/2P1P3/3K1p2/R2B2b1/1P1p4/1Pkn3p/r7 w - - 0 1',
            '1Q6/3P1RR1/4q3/P4p2/1P2r3/1n1kP3/P3p2K/5b2 w - - 0 1',
