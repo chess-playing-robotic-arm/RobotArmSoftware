@@ -4,6 +4,10 @@ import keyboard
 import json
 import time
 
+#! find the arduino code or write again.
+#! smooth the movement of the arm.
+#! improve this code adding functionalities for moving up and down directly. 
+
 # TODO : format this file and restructure !! 
 
 def keyboard_input_thread(callback,saveToFile,makeMove):
@@ -17,7 +21,7 @@ def keyboard_input_thread(callback,saveToFile,makeMove):
     is_recording = False
     right_pos = 40
     left_pos = 60
-    base_pos = 90
+    base_pos = 145
     arm_pos = 120
 
     while True:
@@ -81,7 +85,7 @@ def keyboard_input_thread(callback,saveToFile,makeMove):
         makeMove('e2','e4')
       
       else:
-        print(c + ' is Pressed')
+        # print(c + ' is Pressed')
         print('Nothing Happened')
       
       if(is_recording):  
@@ -184,7 +188,6 @@ def main():
           arduino.write(str(command).encode())
         
         time.sleep(0.25)
-      
           
     def makeMove(initial_square,final_square):
       try:
