@@ -121,7 +121,7 @@ def keyboard_input_thread(callback,arm,save_to_file):
 
         elif c == 'm':
             print('Trying to play e2 to e4............')
-            arm.make_move('e4','e2')
+            arm.make_move('e2','e4')
         
         else:
             # print(c + ' is Pressed')
