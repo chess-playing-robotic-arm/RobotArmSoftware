@@ -135,7 +135,7 @@ def keyboard_input_thread(callback,arm,save_to_file):
 
 
 def main():
-    arduino = serial.Serial('COM3', 9600, timeout=0.1)
+    arduino = serial.Serial('COM5', 9600, timeout=0.1)
     moves = {'o':[16,48,145],'e2': [65,74,111],'e4':[61,72,97]}
     arm = Arm(arduino_conn= arduino,gripper_is_open=True)
 
@@ -144,6 +144,7 @@ def main():
             command = str(motor) + str(pos) + '|'
             print('Motor : ' + str(motor) + ' Angle : ' + str(pos))
             arduino.write(str(command).encode())
+            # print(arduino.readall())
         except:
             arduino.close()
     

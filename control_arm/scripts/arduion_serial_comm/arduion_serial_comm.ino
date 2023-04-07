@@ -7,10 +7,10 @@ Servo servoGripper;
 
 void setup() {
   Serial.begin(9600);   // initialize serial communication at 9600 bits per second
-  servoBase.attach(2);   // attach the base servo to pin 2
-  servoRight.attach(3);   // attach the right servo to pin 3
-  servoLeft.attach(4);   // attach the left servo to pin 4
-  servoGripper.attach(5);   // attach the gripper servo to pin 5
+  servoBase.attach(9);   // attach the base servo to pin 2
+  servoRight.attach(10);   // attach the right servo to pin 3
+  servoLeft.attach(11);   // attach the left servo to pin 4
+  servoGripper.attach(6);   // attach the gripper servo to pin 5
 }
 
 void loop() {
@@ -48,9 +48,6 @@ void loop() {
     }
     
     // print the parsed parts to the serial monitor
-    Serial.print("Motor ");
-    Serial.print(motorNumber);
-    Serial.print(" set to degrees ");
-    Serial.println(degrees);
+    
   }
 }
