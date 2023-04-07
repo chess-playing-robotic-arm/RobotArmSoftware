@@ -6,7 +6,7 @@ from chessboard import display
 from boardDetectFun import crop, drawOrderedPoints, drawPoints, readPoints, writeOutSquares
 
 from defmodel import myModel
-from fenUtils import boardToFen
+from fenUtils import boardToFen, matrix_to_fen
 from square import Square
 
 
@@ -108,7 +108,7 @@ def main():
                 print(pred[i][j], end="   ")
             print()
 
-        fen = boardToFen(pred)
+        fen = matrix_to_fen(pred)
         game_board = display.start(fen=fen)
         # display.update(fen, game_board)
         print('write out images ? (Y/n)')
