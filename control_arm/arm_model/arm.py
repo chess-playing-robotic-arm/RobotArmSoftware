@@ -138,26 +138,16 @@ class Arm():
             time.sleep(2)
 
             #! horizontal pick up
-            # self.horizontal_pickup()
+            
             print('preforming pick up motion')
             self.parallel_execute(self.left,self.right,95,25)
 
-            # move to initial pos
-            # print('Back to initial pos')
-            # self.execute(BASE,150)
-            # self.arm_initialize(gripper_to_be_open= False)
-            time.sleep(1)
-            
             # move to Target square
             print(f'Going to {target_sq}')
             self.execute(self.base,moves[target_sq][2])
             time.sleep(1)
             self.parallel_execute(self.left,self.right,moves[target_sq][1],moves[target_sq][0])
-            # self.execute(LEFT,moves[target_sq][1])
-            # self.left = moves[target_sq][1]
-            # time.sleep(1)
-            # self.execute(RIGHT,moves[target_sq][0])
-            # self.right = moves[target_sq][0]
+           
             time.sleep(1)
             self.open_gripper()
             time.sleep(1)
@@ -173,7 +163,4 @@ class Arm():
             print(f'Here is there Error : {e}')
 
     def __str__(self):
-        # if (self.base.pos == None and self.right.pos == None and self.left.pos == None):
-        #     return 'motors not initialized yet !'
-        # else:
         return f'base @ {self.base.pos}, right @ {self.right.pos}, left @ {self.left.pos}'
