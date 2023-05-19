@@ -1,7 +1,7 @@
 import cv2 as cv
 import numpy as np
 from chessboard import display
-
+ 
 
 from boardDetectFun import crop, drawOrderedPoints, drawPoints, readPoints, writeOutSquares
 

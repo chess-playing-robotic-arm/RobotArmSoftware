@@ -1,6 +1,6 @@
 from stockfish import Stockfish
 
-stockfish = Stockfish(path="D:\stockfish\stockfish-windows-2022-x86-64-avx2.exe")
+stockfish = Stockfish(path="D:\stockfish\stockfish-windows-2022-x86-64-avx2.exe",depth=20)
 
 
 def evaluatePos(fen):
@@ -9,7 +9,10 @@ def evaluatePos(fen):
         evaluation = stockfish.get_evaluation() 
         return [best_move,evaluation]
 
-    
+
+enginMove = stockfish.get_best_move()
+stockfish.make_moves_from_current_position([enginMove])
+print(enginMove)
 while(1):
     print(stockfish.get_board_visual())
     move = input()
@@ -17,5 +20,6 @@ while(1):
     enginMove = stockfish.get_best_move()
     print(enginMove)
     stockfish.make_moves_from_current_position([enginMove])
+    
 
     

@@ -4,6 +4,8 @@ Servo servoBase;
 Servo servoRight;
 Servo servoLeft;
 Servo servoGripper;
+// unsigned long lastInputTime = 0;
+int starting = 0;
 
 void setup() {
   Serial.begin(9600);   // initialize serial communication at 9600 bits per second
@@ -14,6 +16,12 @@ void setup() {
 }
 
 void loop() {
+   if(starting == 0){
+    servoBase.write(90);
+    servoRight.write(30);
+    servoLeft.write(106);
+    starting = 1;
+  }
   if (Serial.available() > 0) {   // check if there is any incoming serial data
     String inputString = Serial.readStringUntil('|');   // read the incoming string until the '|' character is received
     
@@ -48,6 +56,9 @@ void loop() {
     }
     
     // print the parsed parts to the serial monitor
-    
+    Serial.print("Motor ");
+    Serial.print(motorNumber);
+    Serial.print(" set to degrees ");
+    Serial.println(degrees);
   }
 }
