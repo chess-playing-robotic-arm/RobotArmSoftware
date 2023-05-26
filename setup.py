@@ -15,7 +15,7 @@ parser = argparse.ArgumentParser(description='Detecting the chess board')
 
 # Add options and arguments to the parser
 parser.add_argument('-m', '--mode', help='Select the mode (setup(s) - marking dots(m))', required=True)
-parser.add_argument('-o', '--os', help='Select OS (w-l)', required=True)
+parser.add_argument('-o', '--os', help='Select OS (w-m-l)', required=True)
 parser.add_argument('-i', '--input', help='Path to input file', required=False)
 
 # Parse the command-line arguments
@@ -30,7 +30,9 @@ def useFileImage(path):
 
 def useCamera():
     if(args.os == "w"):
-        cap = cv.VideoCapture(0)
+        cap = cv.VideoCapture(1)
+    elif(args.os == "m"):
+        cap = cv.VideoCapture('http://192.168.1.10:8080/video')
     else:
         camera_id="/dev/video1"
         cap = cv.VideoCapture(camera_id, cv.CAP_V4L2)
@@ -56,6 +58,7 @@ def setup():
 
     while setup:
         _, img = cap.read()
+        img = cv.resize(img,(1080,720))
         if(args.mode == 's'):
             gray = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
             edges = cv.Canny(gray, CANNY_LOWER_THRESHOLD, CANNY_LOWER_THRESHOLD, apertureSize=3)

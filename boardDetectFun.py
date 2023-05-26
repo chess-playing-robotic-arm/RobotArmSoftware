@@ -126,7 +126,7 @@ def drawLinesP(img, lines):
 
 def drawPoints(img, points, color = (0,255,255)):
     for point in points:
-        print('trying to draw : ' + str(point))
+        # print('trying to draw : ' + str(point))
         x = np.array(point)
         x = x.astype(int)
         point = tuple(x)
@@ -157,12 +157,35 @@ def detectRedCorners(img):
     upper_mask = cv.inRange(hsv, lower2, upper2)
     
     full_mask = lower_mask + upper_mask;
+
     coord = cv.findNonZero(full_mask)
+    # coord = np.reshape(coord, (coord.shape[0], 2))
+
+    # Calculate the intensity of red for each coordinate
+    red_intensity = []
+    for point in coord:
+        x, y = point[0]
+        red_intensity.append(hsv[y, x, 2])
+
+    # Sort the points based on red intensity and distance in descending order
+    sorted_indices = np.argsort(red_intensity)[::-1]
+    sorted_points = coord[sorted_indices]
+
+    # Filter out the points that are too close to each other
+    filtered_points = []
+    for point in sorted_points:
+        if not any(np.linalg.norm(point - fp) < 20 for fp in filtered_points):
+            filtered_points.append(point)
+        if len(filtered_points) == 4:
+            break
+
+    # Return the top 4 points with the highest red intensity
+    return filtered_points[:4]
     
-    coord = np.reshape(coord,(coord.shape[0],2))
-    # print(coord.shape)
-    points = cluster_points(coord)
-    return points
+    # coord = np.reshape(coord,(coord.shape[0],2))
+    # # print(coord.shape)
+    # points = cluster_points(coord)
+    # return points
 
 # TODO: return corrected corners
 def drawExtractedSquare(img, points):
