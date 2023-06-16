@@ -58,7 +58,7 @@ def setup():
 
     while setup:
         _, img = cap.read()
-        img = cv.resize(img,(1080,720))
+        # img = cv.resize(img,(1080,720))
         if(args.mode == 's'):
             gray = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
             edges = cv.Canny(gray, CANNY_LOWER_THRESHOLD, CANNY_LOWER_THRESHOLD, apertureSize=3)

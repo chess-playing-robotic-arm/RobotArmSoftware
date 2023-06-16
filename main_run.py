@@ -9,6 +9,7 @@ from boardDetectFun import crop, drawOrderedPoints, drawPoints, readPoints, writ
 from defmodel import myModel
 from fenUtils import boardToFen, matrix_to_fen
 from square import Square
+from utils.image_comparator import compare_images, is_same_image, is_similar
 from utils.state_comparator import parallel_image_change_detection
 
 
@@ -64,42 +65,48 @@ def main():
     prev_frame = img.copy()
     # index = 20
     while setup:
-        print('next iteration ....')
-        for i in range(100):
-            ret, img = cap.read()
-            if not ret:
-                continue
-        
-       
-        if not ret:
-            break   
-        img = cv.resize(img,(1080,720))
-        prev_frame = cv.resize(prev_frame,(1080,720))
+        print('next iteration ....')  
+        ret, img = cap.read()
+        # if not ret or img == []:
+        #     break   
+
+        # img = cv.resize(img,(1080,720))
+        # prev_frame = cv.resize(prev_frame,(1080,720))
         # cv.imshow('current Frame',img)
         # cv.imshow('previous Frame',prev_frame)
 
         # cv.imwrite('output/new.png',img)
         # cv.imwrite('output/prev.png',prev_frame)
+        threshold = 5 
         print('started')
         t = time.process_time()
-        result = parallel_image_change_detection(old_img=prev_frame,new_img=img,board=board_img)
+        for i in range(8):
+            for j in range(8):
+                sq = crop(img, board_img[i][j],True)
+                oldSq = crop(prev_frame,board_img[i][j])
+                result = is_similar(sq,oldSq)
+                # if not result:
+                    
+                    # print(f'Same Image ${board_img[i][j].position}')
+                # else:
+                #     print(f'Not the Same ${board_img[i][j].position}!!!')
+        # result = parallel_image_change_detection(old_img=prev_frame,new_img=img,board=board_img)
         elapsed_time = time.process_time() - t
 
         print(f'it took: {elapsed_time}')
-        if len(result) == 0:
-            print('no changes happened')
-        else:
-            for i in result:
-                print(i.position)
+        # 
+        
       
         prev_frame = img.copy()
 
         userInput = input('continue ? ')
-        if userInput == 'y':
-            setup = True
+        double_value = float(userInput)
+        if userInput == 'n':
+            setup = False
             # display.terminate()
         else:
-            setup = False
+            threshold = double_value
+            setup = True
             # display.terminate()
        
 

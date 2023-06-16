@@ -267,31 +267,51 @@ def stringToPoints(strRow):
 # Crops and returns a square
 
 
-def crop(img, square):
+def crop(img, square,precise = False):
     points = square.points()
     # print(points)
     p1 = points[1]
     p4 = points[3]
-   
+
+    # x = np.array(p1)
+    # x = x.astype(int)
+    # point = tuple(x)
+
+    # y = np.array(p4)
+    # y = y.astype(int)
+    # point2 = tuple(y)
+
+    # cv.circle(img, point, 5,(0,0,255))
+    # cv.circle(img, point2,5 ,(0,0,255))
+    # cv.imshow('img',img)
+
     x = int(p1[0])
     w = int(p4[0])
     y = int(p1[1])
     h = int(p4[1])
 
-    newImg = img[y-5:h+5, x-5:w+5]
-    # newImg = img[y:h, x:w]
-    # newImg = img[x:w, y:h]
+    # cv.waitKey()
+    if precise:
+        newImg = img[y:h, x:w]
+    else:
+        newImg = img[y-5:h+5, x-5:w+5]
+    # # newImg = img[y:h, x:w]
+    # # newImg = img[x:w, y:h]
+    # # print(newImg)
+    # print(img)
     # print(newImg)
-
     newImg = cv.resize(newImg, (256, 256))
     return newImg
 
 
-def writeOutSquares(squares, path, index):
+def writeOutSquares(squares, path, index,isOld = False):
     print('writing ...')
     for row in squares:
         for s in row:
-            filename = f'{path}{str(index)}.png'
+            if(isOld):
+                filename = f'{path}{str(index)}old.png'
+            else:
+                filename = f'{path}{str(index)}.png'
             print(filename)
             cv.imwrite(filename, s)
             index += 1
