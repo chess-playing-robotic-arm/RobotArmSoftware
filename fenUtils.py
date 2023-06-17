@@ -63,7 +63,23 @@ def matrix_to_fen(matrix):
     
     return fen
 
-
+def matrix_to_fen2(matrix):
+    fen = ''
+    for row in matrix:
+        empty_count = 0
+        for cell in row:
+            if cell == '_':
+                empty_count += 1
+            else:
+                if empty_count > 0:
+                    fen += str(empty_count)
+                    empty_count = 0
+                fen += cell
+        if empty_count > 0:
+            fen += str(empty_count)
+        fen += '/'
+    fen = fen[:-1]  # Remove the trailing '/'
+    return fen
 # print(matrix_to_fen(matrix))
 
 

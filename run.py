@@ -95,7 +95,10 @@ def main():
                 x = model(sqR, training=False)
                 y = np.argmax(x, axis=1)
                 y = classNames[int(y)]
-                predrow.append(y)
+                if (y != '_'):
+                    predrow.append(1)
+                else:
+                    predrow.append(0)
                 # drawPoints(img,boardimg[i][j].points())
                 sqRow.append(sq)
             sqs.append(sqRow)
@@ -108,8 +111,8 @@ def main():
                 print(pred[i][j], end="   ")
             print()
 
-        fen = matrix_to_fen(pred)
-        game_board = display.start(fen=fen)
+        # fen = matrix_to_fen(pred)
+        # game_board = display.start(fen=fen)
         # display.update(fen, game_board)
         print('write out images ? (Y/n)')
         x = input()

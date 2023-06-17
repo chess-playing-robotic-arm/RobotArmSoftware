@@ -142,3 +142,4 @@ dmypy.json
 /similar
 /different
 *.xlsx
+*.h5
