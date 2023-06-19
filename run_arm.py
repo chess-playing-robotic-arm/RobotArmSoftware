@@ -13,6 +13,8 @@ from boardDetectFun import crop, drawOrderedPoints, drawPoints, readPoints, writ
 from defmodel import myModel
 from fenUtils import boardToFen, matrix_to_fen, matrix_to_fen2
 from square import Square
+from mediapipe import solutions as mp_solutions
+from mediapipe.python.solutions import drawing_utils as mp_drawing
 # from utils.image_comparator import compare_images, is_same_image, is_similar
 
 from datetime import datetime
@@ -137,25 +139,64 @@ def updateMatrix(main_matrix,diff):
 
     
 
-    return main_matrix
+    return main_matrix, piece_type
      
 
 
 def startListening():
     consumer.consume(handler=whenBestMoveAvailable)
 
+
+def observeForHands():
+    # Initialize Mediapipe hands module
+    mp_hands = mp_solutions.hands
+    cap = cv.VideoCapture(1)
+
+
+    # Initialize hands detection object
+    with mp_hands.Hands(static_image_mode=False, max_num_hands=2, min_detection_confidence=0.5) as hands:
+        while cap.isOpened():
+            # Read video stream frame
+            ret, frame = cap.read()
+
+            if not ret:
+                break
+
+            # Convert image to RGB for Mediapipe
+            image = cv.cvtColor(frame, cv.COLOR_BGR2RGB)
+
+            # Process image for hands detection
+            results = hands.process(image)
+
+            # Draw landmarks on the image
+            if results.multi_hand_landmarks:
+                for hand_landmarks in results.multi_hand_landmarks:
+                    print('hand is detected........')
+                    mp_drawing.draw_landmarks(frame, hand_landmarks, mp_hands.HAND_CONNECTIONS)
+
+            # Display the resulting image
+            cv.imshow('Hand Detection', frame)
+
+            # Exit if 'q' key is pressed
+            if cv.waitKey(10) & 0xFF == ord('q'):
+                break
+
           
  
 def main():
     
     thread = threading.Thread(target=startListening)
-    thread.start()
+    thread2 = threading.Thread(target=observeForHands)
 
+    thread.start()
+    thread2.start()
     print('*************************Loading AI Model*********************')
     model = myModel()
 
     print('*************************Initializing Robotic Arm*********************')
     arm = Arm(arduino_conn= arduino,gripper_is_open=True)
+    piece_type = 'p'
+    piece_height = 'p'
     
     classNames = ['b', 'k', 'n', 'p', 'q', 'r',
                   '_', 'B', 'K', 'N', 'P', 'Q', 'R']
@@ -244,7 +285,7 @@ def main():
             
             diff = compareMatrices(prev_matrix,pred)
 
-            main_matrix = updateMatrix(main_matrix=main_matrix,diff=diff)
+            main_matrix,piece_type = updateMatrix(main_matrix=main_matrix,diff=diff)
             new_fen = matrix_to_fen2(main_matrix)
             new_fen += " w - - 0 1" 
             now = datetime.now()
@@ -257,21 +298,31 @@ def main():
             armTurn = True
 
             time.sleep(5)
+
+            if(piece_type == 'k' or piece_type == 'K' or piece_type == 'q' or piece_type == 'Q'):
+                piece_height = 'k'
+            else:
+                piece_height = 'p'
         
         if(shared_queue.not_empty):
             command = shared_queue.get()
             if(len(diff) == 2):
-                arm.make_move(command[0],command[1],'p',False)
+                arm.make_move(command[0],command[1],piece_height,False)
             elif(len(diff) == 1):
-                arm.make_move(command[1],'o','p',False)
+                arm.make_move(command[1],'o',piece_height,False)
                 time.sleep(1)
-                arm.make_move(command[0],command[1],'p',False)
+                arm.make_move(command[0],command[1],piece_height,False)
             else:
-                arm.make_move(command[0],command[1],'p',False)
+                arm.make_move(command[0],command[1],piece_height,False)
             armTurn = False
             board = chess.Board(new_fen)
             uciMove = f'{command[0]}{command[1]}'
             board.push_uci(uciMove)
+            if(board.is_checkmate()):
+                arduino.write('4000|'.encode())
+                running = False
+                print("------------------------CHECKMATE------------------------")
+
             board.turn = chess.WHITE
             newFen = board.fen()
             
@@ -357,6 +408,7 @@ def main():
     cap.release()
     cv.destroyAllWindows()
     thread.join()
+    thread2.join()
 
 
 if __name__ == "__main__":
