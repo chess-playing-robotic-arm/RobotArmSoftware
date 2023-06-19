@@ -6,7 +6,7 @@ import threading
 import serial 
 import json
 import queue
-# from chessboard import display
+
  
 
 from boardDetectFun import crop, drawOrderedPoints, drawPoints, readPoints, writeOutSquares
@@ -14,21 +14,27 @@ from defmodel import myModel
 from fenUtils import boardToFen, matrix_to_fen, matrix_to_fen2
 from square import Square
 # from utils.image_comparator import compare_images, is_same_image, is_similar
-# from utils.state_comparator import parallel_image_change_detection
 
 from datetime import datetime
 
 
 from message_broker.broker import RabbitMQ
 from control_arm.arm_model.arm import Arm
+from testChessBoard import fen_to_board_matrix, normalMatrixToBitMatrix
 from utils.compare_matices import compareMatrices, fromSquare, get_legal_captures
+from utils.uic_to_arm import uciToArmCommands
+
+
+
 
 
 producer = RabbitMQ('fen')
 consumer = RabbitMQ('bestMove')
 
-arduino = serial.Serial('COM3', 9600, timeout=0.1)
+
+arduino = serial.Serial('COM7', 9600, timeout=0.1)
 shared_queue = queue.Queue()
+
 
 
 
@@ -57,8 +63,9 @@ def initialize():
         board_row = []
 
     board_img = np.transpose(board_img)
-    board_img = np.flip(board_img, 1)
-    board_img = np.flip(board_img, 0)
+    
+    # board_img = np.flip(board_img, 1)
+    # board_img = np.flip(board_img, 0)
 
     square_id = 1
 
@@ -81,26 +88,31 @@ def sendToArduino(pos,motor):
     except:
         arduino.close()
 
+
 def whenBestMoveAvailable(msg):
-    print(msg)
+    bestMove = msg['best_move']
+    print(bestMove)
     # Todo: translate stockfish moves into arm commands
-    command = ['d2','d4']
-    # shared_queue.put(command)
+    command = uciToArmCommands(bestMove)
+    print(command)
+    shared_queue.put(command)
 
 
 def updateMatrix(main_matrix,diff):
-
     if(len(diff) == 2):
-            if(diff[0][2] == 0):
-                piece_type = main_matrix[diff[0][0]][diff[0][1]]
-                main_matrix[diff[0][0]][diff[0][1]] = '_'
-                main_matrix[diff[1][0]][diff[1][1]] = piece_type     
-            else:
-                piece_type = main_matrix[diff[1][0]][diff[1][1]]
-                main_matrix[diff[0][0]][diff[0][1]] = piece_type
-                main_matrix[diff[1][0]][diff[1][1]] = '_'  
+            
+       
+        if(diff[0][2] == 0):
+            piece_type = main_matrix[diff[0][0]][diff[0][1]]
+            main_matrix[diff[0][0]][diff[0][1]] = '_'
+            main_matrix[diff[1][0]][diff[1][1]] = piece_type     
+        else:
+            piece_type = main_matrix[diff[1][0]][diff[1][1]]
+            main_matrix[diff[0][0]][diff[0][1]] = piece_type
+            main_matrix[diff[1][0]][diff[1][1]] = '_'  
         
     elif(len(diff) == 1):
+
         print(diff)
         piece_type = main_matrix[diff[0][0]][diff[0][1]]
         temp_fen = matrix_to_fen2(main_matrix)
@@ -119,27 +131,30 @@ def updateMatrix(main_matrix,diff):
             i,j = fromSquare(chess.square_name(captures[0]))
             main_matrix[diff[0][0]][diff[0][1]] = '_'
             main_matrix[i][j] = piece_type
+        elif(len(captures) > 1):
+            for captures in captures:
+                print(capture)
 
     
 
-
-  
     return main_matrix
      
-  
+
 
 def startListening():
     consumer.consume(handler=whenBestMoveAvailable)
+
           
  
 def main():
+    
     thread = threading.Thread(target=startListening)
     thread.start()
 
     print('*************************Loading AI Model*********************')
     model = myModel()
+
     print('*************************Initializing Robotic Arm*********************')
-    
     arm = Arm(arduino_conn= arduino,gripper_is_open=True)
     
     classNames = ['b', 'k', 'n', 'p', 'q', 'r',
@@ -148,14 +163,14 @@ def main():
     cap = cv.VideoCapture(1)
     ret, img = cap.read()
 
-    prev_matrix = [[1,1,1,1,1,1,1,1],
-                   [1,1,1,1,1,1,1,1],
-                   [0,0,0,0,0,0,0,0],
-                   [0,0,0,0,0,0,0,0],
-                   [0,0,0,0,0,0,0,0],
-                   [0,0,0,0,0,0,0,0],
-                   [1,1,1,1,1,1,1,1],
-                   [1,1,1,1,1,1,1,1]]
+    prev_matrix = [ [1,1,1,1,1,1,1,1],
+                    [1,1,1,1,1,1,1,1],
+                    [0,0,0,0,0,0,0,0],
+                    [0,0,0,0,0,0,0,0],
+                    [0,0,0,0,0,0,0,0],
+                    [0,0,0,0,0,0,0,0],
+                    [1,1,1,1,1,1,1,1],
+                    [1,1,1,1,1,1,1,1] ]
     
     main_matrix = [ ['r', 'n', 'b', 'q', 'k', 'b', 'n', 'r'],
                     ['p', 'p', 'p', 'p', 'p', 'p', 'p', 'p'],
@@ -200,52 +215,78 @@ def main():
         while(not armTurn):
             print('*************************AI Model is predicting...*********************')
             sqRow = []
-        sqs = []
-        predrow = []
-        pred = []
-        for i in range(8):
-            for j in range(8):
-                sq = crop(img, board_img[i][j])
-                sqR = np.expand_dims(sq, axis=0)
-                x = model(sqR, training=False)
-                y = np.argmax(x, axis=1)
-                y = classNames[int(y)]
-                if (y != '_'):
-                    predrow.append(1)
-                else:
-                    predrow.append(0)
-                # drawPoints(img,boardimg[i][j].points())
-                sqRow.append(sq)
-            sqs.append(sqRow)
-            pred.append(predrow)
-            predrow = []
-            sqRow = []
-        print('printing the prediction matrix')
-        for i in range(8):
-            for j in range(8):
-                print(pred[i][j], end="   ")
-            print()
+            sqs = []
+            pred_row = []
+            pred = []
+            for i in range(8):
+                for j in range(8):
+                    sq = crop(img, board_img[i][j])
+                    sqR = np.expand_dims(sq, axis=0)
+                    x = model(sqR, training=False)
+                    y = np.argmax(x, axis=1)
+                    y = classNames[int(y)]
+                    if (y != '_'):
+                        pred_row.append(1)
+                    else:
+                        pred_row.append(0)
+                    # drawPoints(img,boardimg[i][j].points())
+                    sqRow.append(sq)
+                sqs.append(sqRow)
+                pred.append(pred_row)
+                pred_row = []
+                sqRow = []
+
+            print('printing the prediction matrix')
+            for i in range(8):
+                for j in range(8):
+                    print(pred[i][j], end="   ")
+                print()
             
-        diff = compareMatrices(prev_matrix,pred)
-        main_matrix = updateMatrix(main_matrix=main_matrix,diff=diff)
-        new_fen = matrix_to_fen2(main_matrix)
-        now = datetime.now()
-        current_time = now.strftime("%H:%M:%S")
-        msg = {"fen":new_fen,"time":current_time}
-        producer.send(json.dumps(msg))
-        
-        print('---------------- Going to sleep waiting for stockfish')
-        
-        armTurn = True
+            diff = compareMatrices(prev_matrix,pred)
 
-        
-        time.sleep(5)
+            main_matrix = updateMatrix(main_matrix=main_matrix,diff=diff)
+            new_fen = matrix_to_fen2(main_matrix)
+            new_fen += " w - - 0 1" 
+            now = datetime.now()
+            current_time = now.strftime("%H:%M:%S")
+            msg = {"fen":new_fen,"time":current_time}
+            producer.send(json.dumps(msg))
+            
+            print('---------------- Going to sleep waiting for stockfish')
+            
+            armTurn = True
 
+            time.sleep(5)
+        
         if(shared_queue.not_empty):
             command = shared_queue.get()
-            arm.make_move(command[0],command[1],'p',False)
+            if(len(diff) == 2):
+                arm.make_move(command[0],command[1],'p',False)
+            elif(len(diff) == 1):
+                arm.make_move(command[1],'o','p',False)
+                time.sleep(1)
+                arm.make_move(command[0],command[1],'p',False)
+            else:
+                arm.make_move(command[0],command[1],'p',False)
             armTurn = False
+            board = chess.Board(new_fen)
+            uciMove = f'{command[0]}{command[1]}'
+            board.push_uci(uciMove)
+            board.turn = chess.WHITE
+            newFen = board.fen()
+            
+            main_matrix = fen_to_board_matrix(newFen)
+            prev_matrix = normalMatrixToBitMatrix(main_matrix,prev_matrix)
+
+            for row in main_matrix:
+                print(row)
+            
+            for row in prev_matrix:
+                print(row)
+
+            print('going to sleep')
             time.sleep(10)
+            print('good morning')
 
         prev_frame = img.copy()
 
