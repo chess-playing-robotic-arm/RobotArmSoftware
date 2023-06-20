@@ -29,8 +29,7 @@ with mp_hands.Hands(static_image_mode=False, max_num_hands=2, min_detection_conf
             for hand_landmarks in results.multi_hand_landmarks:
                 mp_drawing.draw_landmarks(frame, hand_landmarks, mp_hands.HAND_CONNECTIONS)
 
-        # Display the resulting image
-        cv2.imshow('Hand Detection', frame)
+        
 
         # Exit if 'q' key is pressed
         if cv2.waitKey(10) & 0xFF == ord('q'):

@@ -14,7 +14,7 @@ void setup() {
   servoRight.attach(10);   // attach the right servo to pin 3
   servoLeft.attach(11);   // attach the left servo to pin 4
   servoGripper.attach(6);   // attach the gripper servo to pin 5
-  pinMode(buzzerPin, OUTPUT)
+  pinMode(buzzerPin, OUTPUT);
 }
 
 void loop() {
@@ -37,13 +37,13 @@ void loop() {
     int motorNumber = inputString.charAt(0) - '0';   // extract the motor number as an integer
     int degrees = inputString.substring(1).toInt();   // extract the degrees as an integer
 
-    if(motorNumber == 4){
-        tone(buzzerPin, 50);
-        delay(50);
-        noTone(buzzerPin);
-        delay(100);
-        break;
-    }
+    // if(motorNumber == 4){
+    //     tone(buzzerPin, 50);
+    //     delay(50);
+    //     noTone(buzzerPin);
+    //     delay(100);
+    //     break;
+    // }
     
     // map the motor number to the appropriate servo object
     Servo* servo = NULL;
@@ -60,17 +60,37 @@ void loop() {
       case 3:
         servo = &servoGripper;
         break;
+      case 4:
+          if(degree == 100){
+            // error
+            tone(buzzerPin, 1000);
+            delay(1000);
+            noTone(buzzerPin);
+            delay(1000);
+            break;
+          }else{
+            // checkmate
+            tone(buzzerPin, 50);
+            delay(50);
+            noTone(buzzerPin);
+            delay(100);
+            break;
+          }
+          
     }
     
-    // set the servo position based on the parsed degrees
-    if (servo != NULL) {
-      servo->write(degrees);
+    if(motorNumber != 4){
+      // set the servo position based on the parsed degrees
+      if (servo != NULL) {
+        servo->write(degrees);
+      }
     }
+    
     
     // print the parsed parts to the serial monitor
-    Serial.print("Motor ");
-    Serial.print(motorNumber);
-    Serial.print(" set to degrees ");
-    Serial.println(degrees);
+    // Serial.print("Motor ");
+    // Serial.print(motorNumber);
+    // Serial.print(" set to degrees ");
+    // Serial.println(degrees);
   }
 }

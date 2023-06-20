@@ -1,3 +1,4 @@
+from chess import Piece
 from stockfish import Stockfish
 from datetime import datetime
 import time
@@ -23,19 +24,31 @@ def evaluatePos(fen):
         stockfish.set_fen_position(fen)
         
         best_move = stockfish.get_best_move()
-        evaluation = stockfish.get_evaluation() 
+        piece_type = stockfish.get_what_is_on_square(best_move[:2])
+        if(piece_type ==Stockfish.Piece.WHITE_QUEEN or piece_type == Stockfish.Piece.BLACK_QUEEN or piece_type == Stockfish.Piece.WHITE_KING or piece_type == Stockfish.Piece.BLACK_KING):
+            evaluation = 'k'
+        else:
+            evaluation = 'p'
+        # evaluation = stockfish.get_evaluation() 
         return best_move,evaluation
-
+    else:
+        return "0" ,"0"
 
 def handler(msg):
     if(type(msg) == None): return
     print(f'{msg} is received')
     msg = json.loads(msg)
     best_move, evaluation = evaluatePos(msg['fen'])
-    now = datetime.now()
-    current_time = now.strftime("%H:%M:%S")
-    msg = {'fen':msg['fen'],'best_move':best_move,'eval':evaluation,'time':current_time}
-    producer.send(json.dumps(msg))
-    print('msg sent')
+    if(best_move == 0):
+        print('illegal move')
+        msg = {'fen':'0','best_move':'0'}
+        producer.send(json.dumps(msg))
+    else:
+
+        now = datetime.now()
+        current_time = now.strftime("%H:%M:%S")
+        msg = {'fen':msg['fen'],'best_move':best_move,'eval':evaluation,'time':current_time}
+        producer.send(json.dumps(msg))
+        print('msg sent')
 
 consumer.consume(handler=handler)

@@ -94,10 +94,15 @@ def sendToArduino(pos,motor):
 def whenBestMoveAvailable(msg):
     bestMove = msg['best_move']
     print(bestMove)
-    # Todo: translate stockfish moves into arm commands
-    command = uciToArmCommands(bestMove)
-    print(command)
-    shared_queue.put(command)
+    if(bestMove == '0'):
+        shared_queue.put([0])
+    else:
+        # Todo: translate stockfish moves into arm commands
+        command = uciToArmCommands(bestMove)
+        pieceType = msg['evaluation']
+        print(command)
+        print(pieceType)
+        shared_queue.put([command,pieceType])
 
 
 def updateMatrix(main_matrix,diff):
@@ -137,7 +142,7 @@ def updateMatrix(main_matrix,diff):
             for captures in captures:
                 print(capture)
 
-    
+    print(f'the piece is: {piece_type}')
 
     return main_matrix, piece_type
      
@@ -195,8 +200,6 @@ def main():
 
     print('*************************Initializing Robotic Arm*********************')
     arm = Arm(arduino_conn= arduino,gripper_is_open=True)
-    piece_type = 'p'
-    piece_height = 'p'
     
     classNames = ['b', 'k', 'n', 'p', 'q', 'r',
                   '_', 'B', 'K', 'N', 'P', 'Q', 'R']
@@ -299,21 +302,22 @@ def main():
 
             time.sleep(5)
 
-            if(piece_type == 'k' or piece_type == 'K' or piece_type == 'q' or piece_type == 'Q'):
-                piece_height = 'k'
-            else:
-                piece_height = 'p'
+            
         
         if(shared_queue.not_empty):
-            command = shared_queue.get()
-            if(len(diff) == 2):
-                arm.make_move(command[0],command[1],piece_height,False)
-            elif(len(diff) == 1):
-                arm.make_move(command[1],'o',piece_height,False)
-                time.sleep(1)
-                arm.make_move(command[0],command[1],piece_height,False)
+            command,piece_type = shared_queue.get()
+            if(command == [0]):
+                arduino.write('4100|'.encode())
+                running = False
             else:
-                arm.make_move(command[0],command[1],piece_height,False)
+                if(len(diff) == 2):
+                    arm.make_move(command[0],command[1],piece_type,False)
+                elif(len(diff) == 1):
+                    arm.make_move(command[1],'o',piece_type,False)
+                    time.sleep(1)
+                    arm.make_move(command[0],command[1],piece_type,False)
+                else:
+                    arm.make_move(command[0],command[1],piece_type,False)
             armTurn = False
             board = chess.Board(new_fen)
             uciMove = f'{command[0]}{command[1]}'
@@ -337,7 +341,7 @@ def main():
 
             print('going to sleep')
             time.sleep(10)
-            print('good morning')
+            
 
         prev_frame = img.copy()
 
